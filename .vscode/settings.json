@@ -1,0 +1,4 @@
+{
+    "avdmanager.emulator": "c:\\Users\\raulg\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe",
+    "avdmanager.sdkManager": "c:\\android\\sdk\\latest\\bin\\avdmanager.bat"
+}

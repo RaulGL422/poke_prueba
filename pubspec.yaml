@@ -1,5 +1,5 @@
 name: poke_prueba
-description: "A new Flutter project."
+description: "Proyecto Flutter para prueba Tecnica."
 publish_to: 'none'
 version: 0.1.0
 
@@ -9,11 +9,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  provider: ^6.0.0
+  flutter_native_splash: ^2.2.10+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+
+flutter_native_splash:
+  color: "#f79c8c"
+  image: "assets/pokeball.gif"
 
 flutter:
   uses-material-design: true
