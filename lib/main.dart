@@ -30,27 +30,33 @@ class MyApp extends StatelessWidget {
 
 class MainState extends ChangeNotifier {
   final String url = "https://pokeapi.co/api/v2/pokemon";
-  
-  List<Pokemon> listaPokemons = [];
+  int cantidadPokemons = 20;  
+  Set<Pokemon> listaPokemons = {};
+
+  void verMas() {
+    cantidadPokemons += 10;
+    recargarListadoPokemons();
+  }
 
   Future<void> recargarListadoPokemons() async {
-    final respuesta = await http.get(Uri.parse(url));
+    final respuesta = await http.get(Uri.parse("$url?limit=$cantidadPokemons"));
     var datos = json.decode(respuesta.body);
     List results = datos['results'];
-    for (var dato in results) {
-      var datosActual = await http.get(Uri.parse(dato["url"]));
-      var pokemonData = json.decode(datosActual.body);
+    for (var result in results) {
+      if (!listaPokemons.contains(result["name"])) {
+          var datosActual = await http.get(Uri.parse(result["url"]));
+          var pokemonData = json.decode(datosActual.body);
 
-      Pokemon pokemon = Pokemon(
-        nombre: pokemonData["name"],
-        photo: pokemonData["sprites"]["front_default"],
-        habilidades: (pokemonData["abilities"] as List)
-            .map((habilidad) => habilidad["ability"]["name"] as String)
-            .toList(),
-      );
-      listaPokemons.add(pokemon);
+          Pokemon pokemon = Pokemon(
+            nombre: pokemonData["name"],
+            photo: pokemonData["sprites"]["front_default"],
+            habilidades: (pokemonData["abilities"] as List)
+                .map((habilidad) => habilidad["ability"]["name"] as String)
+                .toList(),
+          );
+          listaPokemons.add(pokemon);
+      }
     }
-
     notifyListeners();
   }
 }
@@ -62,7 +68,17 @@ class HomePage extends StatelessWidget {
     if (appState.listaPokemons.isEmpty) {
       appState.recargarListadoPokemons();
     }
-    return PanelCartas(listaPokemons: appState.listaPokemons);
+    return Column(
+      children: [
+        Expanded(child: PanelCartas(listaPokemons: appState.listaPokemons)),
+        Center(
+          child: ElevatedButton(
+            onPressed: () => appState.verMas(),
+            child: Text("Ver mas"),
+          ),
+        )
+      ],
+    );
   }
 }
 
@@ -76,6 +92,15 @@ class Pokemon {
   String nombre;
   String photo;
   List<String> habilidades;
+
+    @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Pokemon && other.nombre == nombre;
+  }
+
+  @override
+  int get hashCode => nombre.hashCode;
   
 }
 
@@ -118,7 +143,7 @@ class PanelCartas extends StatelessWidget {
     required this.listaPokemons
   });
 
-  final List<Pokemon> listaPokemons;
+  final Set<Pokemon> listaPokemons;
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +159,7 @@ class PanelCartas extends StatelessWidget {
             ),
             itemCount: listaPokemons.length,
             itemBuilder: (context, index) {
-              return CartaPokemon(pokemon: listaPokemons[index]);
+              return CartaPokemon(pokemon: listaPokemons.elementAt(index));
             }
           )
         )
