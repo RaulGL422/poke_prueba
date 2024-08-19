@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:poke_prueba/bloc.dart';
+import 'package:poke_prueba/events.dart';
+import 'package:poke_prueba/states.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,67 +13,48 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MainState(),
-      child: MaterialApp(
+    return MaterialApp(
         
         title: 'Poke Prueba',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         ),
-        home: HomePage(),
-      ),
+        
+        home: BlocProvider(
+          create: (_) => PokemonBloc()..add(LoadPokemons()),
+          child: HomePage(),
+          ),
     );
   }
 }
 
-class MainState extends ChangeNotifier {
-  final String url = "https://pokeapi.co/api/v2/pokemon";
-  int cantidadPokemons = 20;  
-  Set<Pokemon> listaPokemons = {};
-
-  void verMas() {
-    cantidadPokemons += 10;
-    recargarListadoPokemons();
-  }
-
-  Future<void> recargarListadoPokemons() async {
-    final respuesta = await http.get(Uri.parse("$url?limit=$cantidadPokemons"));
-    var datos = json.decode(respuesta.body);
-    List results = datos['results'];
-    for (var result in results) {
-      if (!listaPokemons.contains(result["name"])) {
-          var datosActual = await http.get(Uri.parse(result["url"]));
-          var pokemonData = json.decode(datosActual.body);
-
-          Pokemon pokemon = Pokemon(
-            nombre: pokemonData["name"],
-            photo: pokemonData["sprites"]["front_default"],
-            habilidades: (pokemonData["abilities"] as List)
-                .map((habilidad) => habilidad["ability"]["name"] as String)
-                .toList(),
-          );
-          listaPokemons.add(pokemon);
-      }
-    }
-    notifyListeners();
-  }
-}
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MainState>();
-    if (appState.listaPokemons.isEmpty) {
-      appState.recargarListadoPokemons();
-    }
     return Column(
       children: [
-        Expanded(child: PanelCartas(listaPokemons: appState.listaPokemons)),
+        Expanded(
+            child: BlocBuilder<PokemonBloc, PokemonState>(
+              builder: (context, state) {
+                if (state is PokemonLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is PokemonLoaded) {
+                  return PanelCartas(
+                    pokemonList: state.pokemonList
+                  );
+                } else if (state is PokemonError) {
+                  return Center(child: Text(state.message));
+                } else {
+                  return Center(child: Text("No hay pokemons disponibles"));
+                }
+              }
+            )
+        ),
         Center(
           child: ElevatedButton(
-            onPressed: () => appState.verMas(),
+            onPressed: () => context.read<PokemonBloc>().add(LoadMorePokemons()),
             child: Text("Ver mas"),
           ),
         )
@@ -92,6 +73,7 @@ class Pokemon {
   String nombre;
   String photo;
   List<String> habilidades;
+  bool favorite = false;
 
     @override
   bool operator ==(Object other) {
@@ -115,24 +97,38 @@ class CartaPokemon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.network(pokemon.photo), // Cargar la imagen desde la URL
-          const SizedBox(height: 10),
-          Text(
-            pokemon.nombre,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+    IconData icon;
+    if (pokemon.favorite) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
+    return BlocBuilder<PokemonBloc, PokemonState> (
+        builder: (context, state) {
+          return Card(
+            elevation: 4,
+            margin: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.network(pokemon.photo), // Cargar la imagen desde la URL
+                const SizedBox(height: 10),
+                Text(
+                  pokemon.nombre,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => context.read<PokemonBloc>()..add(ToggleFavorite(pokemon: pokemon)),
+                  icon: Icon(icon)
+                )
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          );
+        }
+      );
   }
 }
 
@@ -140,10 +136,10 @@ class CartaPokemon extends StatelessWidget {
 class PanelCartas extends StatelessWidget {
   const PanelCartas({
     super.key,
-    required this.listaPokemons
+    required this.pokemonList
   });
 
-  final Set<Pokemon> listaPokemons;
+  final Set<Pokemon> pokemonList;
 
   @override
   Widget build(BuildContext context) {
@@ -157,9 +153,9 @@ class PanelCartas extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16
             ),
-            itemCount: listaPokemons.length,
+            itemCount: pokemonList.length,
             itemBuilder: (context, index) {
-              return CartaPokemon(pokemon: listaPokemons.elementAt(index));
+              return CartaPokemon(pokemon: pokemonList.elementAt(index));
             }
           )
         )
