@@ -1,7 +1,7 @@
-import 'package:poke_prueba/main.dart';
+import 'package:poke_prueba/models/pokemon.dart';
 
 abstract class PokemonState {
-  const PokemonState();
+  PokemonState();
 }
 
 class PokemonInitial extends PokemonState {}
@@ -9,9 +9,8 @@ class PokemonInitial extends PokemonState {}
 class PokemonLoading extends PokemonState {}
 
 class PokemonLoaded extends PokemonState {
-  final Set<Pokemon> pokemonList;
-
-  const PokemonLoaded({
+  final List<Pokemon> pokemonList;
+  PokemonLoaded({
     required this.pokemonList
   });
 }
@@ -19,7 +18,7 @@ class PokemonLoaded extends PokemonState {
 class PokemonError extends PokemonState {
   final String message;
   
-  const PokemonError({
+  PokemonError({
     required this.message
   });
 }
