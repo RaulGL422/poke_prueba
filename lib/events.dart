@@ -25,6 +25,8 @@ class FilterName extends PokemonEvent {
   });
 }
 
+class ClearFilter extends PokemonEvent {}
+
 class SelectPokemon extends PokemonEvent {
   final Pokemon selectedPokemon;
   final BuildContext context;

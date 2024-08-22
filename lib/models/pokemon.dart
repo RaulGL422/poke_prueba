@@ -1,15 +1,15 @@
 class Pokemon {
   Pokemon({
-    required this.numPokedex,
     required this.name,
-    required this.photo,
-    required this.habilities,
+    required this.url
   });
 
-  int numPokedex;
+  String url;
+  int numPokedex = -1;
   String name;
-  String photo;
-  List<String> habilities;
+  String photo = "";
+  List<String> habilities = [];
+  List<String> types = [];
 
   @override
   bool operator ==(Object other) {

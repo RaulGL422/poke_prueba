@@ -5,6 +5,7 @@ import 'package:poke_prueba/events.dart';
 import 'package:poke_prueba/models/pokemon.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:poke_prueba/states.dart';
+import 'package:poke_prueba/models/type.dart'; // Asegúrate de importar el archivo con el enumerado
 
 class CartaPokemon extends StatelessWidget {
   final Pokemon pokemon;
@@ -30,40 +31,16 @@ class CartaPokemon extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             elevation: 6,
-            margin: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Container(
-                    height: 250, // Altura fija
-                    color: Colors.grey[300], // Fondo gris
-                    child: CachedNetworkImage(
-                      imageUrl: pokemon.photo,
-                      placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
-                      fit: BoxFit.cover, // Ajusta la imagen para que siempre se vea bien
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        pokemon.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      IconButton(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 15, right: 15),
+                      child: IconButton(
                         onPressed: () {
                           context.read<PokemonBloc>().add(ToggleFavorite(pokemon: pokemon));
                         },
@@ -71,8 +48,47 @@ class CartaPokemon extends StatelessWidget {
                         color: Colors.red,
                         iconSize: 30,
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                ClipRRect(
+                  child: SizedBox(
+                    height: 200,
+                    child: CachedNetworkImage(
+                      imageUrl: pokemon.photo,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                      fit: BoxFit.cover,
+                    ),
                   ),
+                ), 
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    pokemon.name,
+                    style: const TextStyle(
+                      fontSize: 22, // Aumenta el tamaño del texto para adaptarlo al nuevo tamaño
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 4.0,
+                  alignment: WrapAlignment.center,
+                  children: pokemon.types.map((type) {
+                    final typeEnum = Type.values.firstWhere((e) => e.name.toLowerCase() == type.toLowerCase());
+                    return Chip(
+                      label: Text(
+                        type,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: typeEnum.color,
+                    );
+                  }).toList(),
                 ),
               ],
             ),

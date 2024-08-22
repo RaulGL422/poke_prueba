@@ -9,17 +9,15 @@ import 'package:poke_prueba/states.dart';
 
 class PokemonBloc extends Bloc<PokemonEvent, PokemonState> {
   final String url = "https://pokeapi.co/api/v2/pokemon";
-  final int pokemonCharged = 10; // Pokemons nuevos cada vez
+  final int pokemonPerPage = 20; // Cantidad de Pokémon a mostrar por página
 
-  int offset = 0; // Limitador
-  List<Pokemon> pokemonList = []; // Lista de pokemons
-  List<Pokemon> favoritePokemons = [];
+  List<Pokemon> pokemonList = []; // Lista de Pokémon cargados con detalles
+  List<Pokemon> displayedPokemons = []; // Lista de Pokémon actualmente mostrados
+  List<Pokemon> favoritePokemons = []; // Lista de Pokemon favoritos
+  List<Pokemon> filteredList = [];
 
   bool favoriteFilter = false;
-
-  List<Pokemon> sortPokemonList(List<Pokemon> list) {
-    return list..sort((a, b) => a.numPokedex.compareTo(b.numPokedex));
-  }
+  bool nameFilter = false;
 
   PokemonBloc() : super(PokemonInitial()) {
     on<LoadPokemons>(onLoadPokemons);
@@ -28,6 +26,7 @@ class PokemonBloc extends Bloc<PokemonEvent, PokemonState> {
     on<ToggleFavoriteFilter>(onToggleFavoriteFilter);
     on<FilterName>(onFilterName);
     on<SelectPokemon>(onSelectPokemon);
+    on<ClearFilter>(clearFilter);
   }
 
   Future<void> onLoadPokemons(
@@ -36,9 +35,11 @@ class PokemonBloc extends Bloc<PokemonEvent, PokemonState> {
   ) async {
     emit(PokemonLoading());
     try {
-      await Future.delayed(Duration(seconds: 1));
-      await obtainPokemons(offset);
-      emit(PokemonLoaded(pokemonList: sortPokemonList(pokemonList)));
+      // Cargar lista de nombres y URLs de todos los Pokémon
+      await obtainAllPokemonData();
+      // Mostrar los primeros 20 Pokémon (cargar sus detalles bajo demanda)
+      await loadPokemonDetails(offset: 0, limit: pokemonPerPage);
+      emit(PokemonLoaded(pokemonList: displayedPokemons));
     } catch (e) {
       emit(PokemonError(message: e.toString()));
     }
@@ -48,14 +49,20 @@ class PokemonBloc extends Bloc<PokemonEvent, PokemonState> {
     LoadMorePokemons event,
     Emitter<PokemonState> emit
   ) async {
-    try {
-      offset += pokemonCharged; // Incrementar el offset para cargar más
-      await obtainPokemons(offset);
-      emit(PokemonLoaded(pokemonList: sortPokemonList(pokemonList)));
-    } catch (e) {
-      emit(PokemonError(message: e.toString()));
+    if (!favoriteFilter && !nameFilter) {
+      emit(PokemonLoadingMore(pokemonList: displayedPokemons));
+      try {
+        // Calcular el siguiente conjunto de Pokémon a mostrar
+        int nextOffset = displayedPokemons.length;
+        await loadPokemonDetails(offset: nextOffset, limit: pokemonPerPage);
+        emit(PokemonLoaded(pokemonList: displayedPokemons));
+      } catch (e) {
+        emit(PokemonError(message: e.toString()));
+      }
     }
+    
   }
+
 
   void onToggleFavorite(
     ToggleFavorite event,
@@ -66,58 +73,109 @@ class PokemonBloc extends Bloc<PokemonEvent, PokemonState> {
     } else {
       favoritePokemons.add(event.pokemon);
     }
-    
-    emit(PokemonLoaded(pokemonList: favoriteFilter ? favoritePokemons : pokemonList));
+
+    emit(PokemonLoaded(pokemonList: favoriteFilter ? favoritePokemons : displayedPokemons));
   }
 
-  Future<void> obtainPokemons(int offset) async {
-    final globalResponse = await http.get(Uri.parse("$url?limit=$pokemonCharged&offset=$offset")); // Datos Globales
+  Future<void> obtainAllPokemonData() async {
+    final globalResponse = await http.get(Uri.parse("$url?limit=1118")); // Obtener lista de nombres y URLs de todos los Pokémon
     var globalData = json.decode(globalResponse.body);
     List results = globalData['results'];
 
-    // Realizar las peticiones en paralelo
-    await Future.wait(results.map((result) => obtainPokemonDetail(result["url"])));
+    pokemonList = results.map(((result) {
+      return Pokemon(name: capitalize(result["name"]), url: result["url"]);
+    })).toList();
+  }
+
+  String capitalize(String name) {
+    return name.split('-').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
+  }
+
+  Future<void> loadPokemonDetails({required int offset, required int limit}) async {
+    for (var i = offset; i < offset + limit; i++) {
+      Pokemon pokemon = await obtainPokemonDetail(pokemonList.elementAt(i));
+      displayedPokemons.add(pokemon);
+    }
+  }
+
+  Future<Pokemon> obtainPokemonDetail(Pokemon pokemon) async {
+    final response = await http.get(Uri.parse(pokemon.url)); // Datos del Pokémon
+    var pokemonData = json.decode(response.body);
+
+    pokemon.numPokedex = pokemonData["id"];
+    pokemon.photo = pokemonData["sprites"]["front_default"];
+    pokemon.habilities = (pokemonData["abilities"] as List)
+          .map((habilidad) => capitalize(habilidad["ability"]["name"]))
+          .toList();
+    pokemon.types = (pokemonData["types"] as List)
+      .map((type) => capitalize(type["type"]["name"]))
+      .toList();
+
+    return pokemon;
   }
 
   void onToggleFavoriteFilter(
     ToggleFavoriteFilter event,
     Emitter<PokemonState> emit
   ) {
-    
     if (favoriteFilter) {
-      emit(PokemonLoaded(pokemonList: sortPokemonList(pokemonList)));
+      emit(PokemonLoaded(pokemonList: nameFilter
+        ? filteredList.where(
+            (pokemon) => pokemonList.contains(pokemon)
+          ).toList() 
+        : pokemonList)
+      );
     } else {
-      emit(PokemonLoaded(pokemonList: sortPokemonList(favoritePokemons)));
+      emit(PokemonLoaded(pokemonList: nameFilter 
+        ? filteredList.where(
+            (pokemon) => favoritePokemons.contains(pokemon)
+          ).toList() 
+        : favoritePokemons)
+      );
     }
     favoriteFilter = !favoriteFilter;
   }
 
-  Future<void> obtainPokemonDetail(String url) async {
-    final response = await http.get(Uri.parse(url)); // Datos del pokemon
-    var pokemonData = json.decode(response.body);
-
-    Pokemon pokemon = Pokemon(
-      numPokedex: pokemonData["id"],
-      name: pokemonData["name"],
-      photo: pokemonData["sprites"]["front_default"],
-      habilities: (pokemonData["abilities"] as List)
-          .map((habilidad) => habilidad["ability"]["name"] as String)
-          .toList(),
-    );
-
-    pokemonList.add(pokemon);
-  }
-
-  void onFilterName(
-    FilterName event,
+  void clearFilter(
+    ClearFilter event,
     Emitter<PokemonState> emit
   ) {
-    List<Pokemon> listFiltered = List.from(favoriteFilter ? favoritePokemons : pokemonList);
-
-    listFiltered.retainWhere((pokemon) => pokemon.name.contains(event.name));
-    emit(PokemonLoaded(pokemonList: listFiltered));
+    nameFilter = false;
+    emit(PokemonLoaded(pokemonList: favoriteFilter ? favoritePokemons : displayedPokemons));
   }
-  
+
+  Future<void> onFilterName(
+    FilterName event,
+    Emitter<PokemonState> emit
+  ) async {
+    if (event.name.isNotEmpty) {
+      nameFilter = true;
+      emit(PokemonLoading());
+      try {
+        if (favoriteFilter) {
+          filteredList = favoritePokemons.where(
+            (pokemon) => pokemon.name.toLowerCase().contains(event.name.trim().toLowerCase())
+          ).toList();
+        } else {
+          filteredList = pokemonList.where(
+            (pokemon) => pokemon.name.toLowerCase().contains(event.name.trim().toLowerCase())
+          ).toList();
+        }
+        
+
+        for (int i = 0; i < filteredList.length; i++) {
+          filteredList[i] = await obtainPokemonDetail(filteredList[i]);
+        }
+
+        emit(PokemonLoaded(pokemonList: filteredList));
+      } catch (e) {
+        emit(PokemonError(message: e.toString()));
+      }
+    } else {
+      nameFilter = false;
+    }
+  }
+
   void onSelectPokemon(
     SelectPokemon event,
     Emitter<PokemonState> emit
@@ -125,8 +183,8 @@ class PokemonBloc extends Bloc<PokemonEvent, PokemonState> {
     Navigator.push(
       event.context,
       MaterialPageRoute(
-        builder: (context) => PokemonDetailsPage(pokemon: event.selectedPokemon)
-      )
+        builder: (context) => PokemonDetailsPage(pokemon: event.selectedPokemon),
+      ),
     );
   }
 }

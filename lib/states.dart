@@ -8,6 +8,12 @@ class PokemonInitial extends PokemonState {}
 
 class PokemonLoading extends PokemonState {}
 
+class PokemonLoadingMore extends PokemonLoaded {
+  PokemonLoadingMore({
+    required super.pokemonList
+  });
+}
+
 class PokemonLoaded extends PokemonState {
   final List<Pokemon> pokemonList;
   PokemonLoaded({
