@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:poke_prueba/bloc.dart';
-import 'package:poke_prueba/events.dart';
 import 'package:poke_prueba/pages/home.dart';
+import 'package:poke_prueba/theme/theme.dart';
+import 'package:poke_prueba/events.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Poke Prueba',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-      ),
+      theme: AppTheme.theme,
       home: BlocProvider(
-        create: (_) => PokemonBloc()..add(LoadPokemons()),
+        create: (context) => PokemonBloc()..add(LoadPokemons()),
         child: HomePage(),
       ),
     );
   }
 }
-

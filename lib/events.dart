@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:poke_prueba/models/pokemon.dart';
 
 abstract class PokemonEvent {
@@ -10,7 +9,7 @@ class LoadPokemons extends PokemonEvent {}
 class LoadMorePokemons extends PokemonEvent {}
 
 class ToggleFavorite extends PokemonEvent {
-  final Pokemon pokemon; // Pokemon seleccionado
+  final Pokemon pokemon;
   ToggleFavorite({
     required this.pokemon
   });
@@ -29,11 +28,11 @@ class ClearFilter extends PokemonEvent {}
 
 class SelectPokemon extends PokemonEvent {
   final Pokemon selectedPokemon;
-  final BuildContext context;
 
   const SelectPokemon({
-    required this.selectedPokemon,
-    required this.context
+    required this.selectedPokemon
   });
 
 }
+
+class ClearSelection extends PokemonEvent {}

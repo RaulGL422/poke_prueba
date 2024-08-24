@@ -4,6 +4,8 @@ class Pokemon {
     required this.url
   });
 
+  bool loadedDetails = false;
+
   String url;
   int numPokedex = -1;
   String name;

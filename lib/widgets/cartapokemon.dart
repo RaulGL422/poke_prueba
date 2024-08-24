@@ -17,16 +17,16 @@ class CartaPokemon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("Creando carta $pokemon");
     return BlocBuilder<PokemonBloc, PokemonState>(
       builder: (context, state) {
         final isFavorite = context.read<PokemonBloc>().favoritePokemons.contains(pokemon);
-        final icon = isFavorite ? Icons.favorite : Icons.favorite_border;
-
-        return InkWell(
+        return GestureDetector(
           onTap: () {
-            context.read<PokemonBloc>().add(SelectPokemon(selectedPokemon: pokemon, context: context));
+            context.read<PokemonBloc>().add(SelectPokemon(selectedPokemon: pokemon));
           },
           child: Card(
+            color: const Color.fromARGB(255, 174, 147, 147),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -38,17 +38,17 @@ class CartaPokemon extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 15, right: 15),
-                      child: IconButton(
+                    IconButton(
                         onPressed: () {
                           context.read<PokemonBloc>().add(ToggleFavorite(pokemon: pokemon));
                         },
-                        icon: Icon(icon),
-                        color: Colors.red,
-                        iconSize: 30,
+                        icon: Icon(isFavorite 
+                          ? Icons.star 
+                          : Icons.star_border
+                        ),
+                        color: isFavorite ? Colors.yellow : Colors.white,
+                        iconSize: 50,
                       ),
-                    ),
                   ],
                 ),
                 ClipRRect(
@@ -70,7 +70,7 @@ class CartaPokemon extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 22, // Aumenta el tamaño del texto para adaptarlo al nuevo tamaño
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),

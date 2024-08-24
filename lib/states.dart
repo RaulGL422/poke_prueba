@@ -21,6 +21,13 @@ class PokemonLoaded extends PokemonState {
   });
 }
 
+class PokemonSelectedState extends PokemonState {
+  final Pokemon pokemon;
+  PokemonSelectedState({
+    required this.pokemon
+  });
+}
+
 class PokemonError extends PokemonState {
   final String message;
   

@@ -26,7 +26,7 @@ class PanelCartas extends StatelessWidget {
         }
       },
     );
-    
+
     final sizeScreen = MediaQuery.of(context).size;
 
     int columns;
@@ -76,4 +76,4 @@ class PanelCartas extends StatelessWidget {
       ),
     );
   }
-}
+  }
