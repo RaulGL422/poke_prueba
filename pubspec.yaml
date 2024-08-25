@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   provider: ^6.0.0
+  flutter_native_splash: ^2.4.1
   http: ^1.2.2
   flutter_bloc: ^8.0.1
-  flutter_native_splash: ^2.2.10+1
   cached_network_image: ^3.2.0
 
 dev_dependencies:
@@ -20,9 +20,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-flutter_native_splash:
-  color: "#f79c8c"
-  image: "assets/pokeball.gif"
-
 flutter:
   uses-material-design: true
+
+flutter_native_splash:
+  color: "#f79c8c"
+  image: assets/splash.png

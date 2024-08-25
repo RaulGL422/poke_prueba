@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Poke Prueba',
-      theme: AppTheme.theme,
+      theme: AppTheme.getTheme(context),
       home: BlocProvider(
         create: (context) => PokemonBloc()..add(LoadPokemons()),
         child: HomePage(),

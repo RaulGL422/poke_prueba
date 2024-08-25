@@ -13,6 +13,8 @@ class HomePage extends StatelessWidget {
     return BlocBuilder<PokemonBloc, PokemonState>(
       builder: (context, state) {
         print("Renderizando");
+
+        // Si hay un Pokémon seleccionado, muestra la página de detalles
         if (state is PokemonSelectedState) {
           return PokemonDetailsPage(pokemon: state.pokemon);
         }
@@ -26,34 +28,32 @@ class HomePage extends StatelessWidget {
           ),
           body: Column(
             children: [
-              FilterBar(),
+              FilterBar(), // Barra de filtrado
 
-              if (state is PokemonLoaded)
-                if (state.pokemonList.isNotEmpty)
-                  Expanded(
-                    child: PanelCartas(pokemonList: state.pokemonList, state: state),
-                  ),
+              if (state is PokemonLoaded && state.pokemonList.isNotEmpty)
+                Expanded(
+                  child: PanelCartas(pokemonList: state.pokemonList, state: state),
+                ), // Panel con la lista de Pokémon
 
               if (state is PokemonLoadingMore)
                 Padding(
                   padding: EdgeInsets.all(8),
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(), // Indicador de carga adicional
                 ),
 
               if (state is PokemonLoading)
                 Expanded(
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(child: CircularProgressIndicator()), // Indicador de carga inicial
                 ),
 
               if (state is PokemonError)
                 Expanded(
-                  child: Center(child: Text(state.message)),
+                  child: Center(child: Text(state.message)), // Mensaje de error
                 ),
 
-              if (state is PokemonInitial ||
-                  (state is PokemonError && !state.message.isNotEmpty))
+              if (state is PokemonInitial || (state is PokemonError && !state.message.isNotEmpty))
                 Expanded(
-                  child: Center(child: Text("No hay pokemons disponibles")),
+                  child: Center(child: Text("No hay pokemons disponibles")), // Mensaje cuando no hay datos
                 ),
             ],
           ),

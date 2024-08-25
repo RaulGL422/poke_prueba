@@ -4,6 +4,7 @@ import 'package:poke_prueba/bloc.dart';
 import 'package:poke_prueba/controllers/scrollcontroller.dart';
 import 'package:poke_prueba/events.dart';
 import 'package:poke_prueba/states.dart';
+import 'package:poke_prueba/theme/theme.dart';
 import 'package:poke_prueba/widgets/cartapokemon.dart';
 import 'package:poke_prueba/models/pokemon.dart';
 
@@ -22,7 +23,7 @@ class PanelCartas extends StatelessWidget {
     final scrollController = PokemonScrollController(
       onEndReached: () {
         if (state is! PokemonLoadingMore) {
-          context.read<PokemonBloc>().add(LoadMorePokemons());
+          context.read<PokemonBloc>().add(LoadMorePokemons()); // Carga más Pokémon al llegar al final de la lista
         }
       },
     );
@@ -33,17 +34,18 @@ class PanelCartas extends StatelessWidget {
     double widthFactor;
     double spacing;
 
+    // Configuración de columnas, ancho y espaciado según el tamaño de la pantalla
     if (sizeScreen.width >= 1200) { // Ordenador
-      columns = 4;
-      widthFactor = 0.8;
-      spacing = 16;
-    } else if (sizeScreen.width >= 800) { // Tablet
       columns = 3;
-      widthFactor = 0.7;
+      widthFactor = AppFactorWidth.widthFactorComputer;
       spacing = 16;
-    } else { // Moviles
+    } else if (sizeScreen.width >= 728) { // Tablet
+      columns = 2;
+      widthFactor = AppFactorWidth.widthFactorTablet;
+      spacing = 16;
+    } else { // Móviles
       columns = 1;
-      widthFactor = 0.9;
+      widthFactor = AppFactorWidth.widthFactorMobile;
       spacing = 12;
     }
 
@@ -53,15 +55,15 @@ class PanelCartas extends StatelessWidget {
         child: GridView.builder(
           controller: scrollController,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            crossAxisSpacing: spacing,
-            mainAxisSpacing: spacing,
+            crossAxisCount: columns, // Número de columnas en la grilla
+            crossAxisSpacing: spacing, // Espaciado horizontal entre columnas
+            mainAxisSpacing: spacing, // Espaciado vertical entre filas
           ),
           itemCount: pokemonList.length,
           itemBuilder: (context, index) {
             final pokemon = pokemonList[index];
 
-            // Animación de Fade y Scale
+            // Aplicación de animación de opacidad y escala a las cartas
             return AnimatedOpacity(
               opacity: 1.0,
               duration: Duration(milliseconds: 300), // Duración de la animación de desvanecimiento
@@ -76,4 +78,4 @@ class PanelCartas extends StatelessWidget {
       ),
     );
   }
-  }
+}

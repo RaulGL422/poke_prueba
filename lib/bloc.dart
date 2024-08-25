@@ -187,8 +187,7 @@ class PokemonBloc extends Bloc<PokemonEvent, PokemonState> {
             .where((pokemon) => !pokemon.loadedDetails)
             .map((pokemon) => obtainPokemonDetail(pokemon));
 
-        final fetchedPokemons = await Future.wait(fetches);
-        filteredList.addAll(fetchedPokemons);
+        await Future.wait(fetches);
 
         emit(PokemonLoaded(pokemonList: filteredList));
       } catch (e) {
