@@ -5,20 +5,19 @@ import 'package:poke_prueba/events.dart';
 import 'package:poke_prueba/theme/theme.dart';
 
 class FilterBar extends StatelessWidget {
+  const FilterBar();
+
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
-    final sizeScreen = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
+    final screenSize = MediaQuery.of(context).size;
 
     // Ajusta el widthFactor según el tamaño de la pantalla
-    double widthFactor;
-    if (sizeScreen.width >= 1200) { // Ordenador
-      widthFactor = AppFactorWidth.widthFactorComputer;
-    } else if (sizeScreen.width >= 800) { // Tablet
-      widthFactor = AppFactorWidth.widthFactorTablet;
-    } else { // Móviles
-      widthFactor = AppFactorWidth.widthFactorMobile;
-    }
+    final double widthFactor = screenSize.width >= 1200
+        ? AppFactorWidth.widthFactorComputer // Ordenador
+        : screenSize.width >= 800
+            ? AppFactorWidth.widthFactorTablet // Tablet
+            : AppFactorWidth.widthFactorMobile; // Móviles
 
     return Center(
       child: FractionallySizedBox(
@@ -33,7 +32,7 @@ class FilterBar extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         child: TextField(
                           onSubmitted: (text) {
                             context.read<PokemonBloc>().add(FilterName(name: text));
@@ -41,33 +40,31 @@ class FilterBar extends StatelessWidget {
                           decoration: InputDecoration(
                             hintText: 'Filtrar nombre',
                             hintStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
-                            contentPadding: EdgeInsets.all(8),
+                            contentPadding: const EdgeInsets.all(8),
                           ),
                           style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                         ),
                       ),
                     ),
-          
                     SizedBox(
                       width: 100,
                       child: ElevatedButton(
                         onPressed: () {
                           context.read<PokemonBloc>().add(ClearFilter());
                         },
-                        child: Text("Limpiar"),
+                        child: const Text("Limpiar"),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            
             IconButton(
               onPressed: () {
                 context.read<PokemonBloc>().add(ToggleFavoriteFilter());
               },
               icon: Icon(
-                context.read<PokemonBloc>().favoriteFilter
+                context.read<PokemonBloc>().isFavoriteFilterEnabled
                     ? Icons.star
                     : Icons.star_border,
               ),

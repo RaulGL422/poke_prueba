@@ -7,61 +7,59 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:poke_prueba/states.dart';
 import 'package:poke_prueba/models/type.dart';
 
-class CartaPokemon extends StatelessWidget {
+class PokemonCard extends StatelessWidget {
   final Pokemon pokemon;
 
-  const CartaPokemon({
-    super.key,
+  const PokemonCard({
+    Key? key,
     required this.pokemon,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    print("Creando carta $pokemon");
-
     return BlocBuilder<PokemonBloc, PokemonState>(
       builder: (context, state) {
-        final isFavorite = context
-            .read<PokemonBloc>()
-            .favoritePokemons
-            .contains(pokemon); // Verifica si el Pokémon es favorito
+        // Verificar si el Pokémon es favorito
+        final bool isFavorite = context.read<PokemonBloc>().favoritePokemons.contains(pokemon);
 
         return GestureDetector(
           onTap: () {
-            context
-                .read<PokemonBloc>()
-                .add(SelectPokemon(selectedPokemon: pokemon)); // Selecciona el Pokémon al hacer clic
+            // Seleccionar el Pokémon al hacer clic
+            context.read<PokemonBloc>().add(SelectPokemon(selectedPokemon: pokemon));
           },
           child: Card(
             color: const Color.fromARGB(255, 174, 147, 147),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12), // Esquina redondeada de la carta
+              borderRadius: BorderRadius.circular(12), // Esquinas redondeadas para la tarjeta
             ),
-            elevation: 6, // Elevación de la carta para darle sombra
-            margin: const EdgeInsets.all(4), // Margen alrededor de la carta
+            elevation: 6, // Elevación de la tarjeta para crear una sombra
+            margin: const EdgeInsets.all(4), // Margen alrededor de la tarjeta
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final imageHeight = constraints.maxHeight * 0.45; // Obtener el 45% de la card
+                // Calcular la altura de la imagen como el 45% de la altura total de la tarjeta
+                final double imageHeight = constraints.maxHeight * 0.45;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Icono de favorito en la esquina superior derecha
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         IconButton(
                           onPressed: () {
-                            context.read<PokemonBloc>().add(
-                                ToggleFavorite(
-                                    pokemon: pokemon)); // Marca o desmarca como favorito
+                            // Añadir o eliminar de favoritos
+                            context.read<PokemonBloc>().add(ToggleFavorite(pokemon: pokemon));
                           },
                           icon: Icon(
-                              isFavorite ? Icons.star : Icons.star_border), // Icono de estrella (llena o vacía)
-                          color: isFavorite ? Colors.yellow : Colors.white, // Color del icono según sea favorito o no
+                            isFavorite ? Icons.star : Icons.star_border, // Estrella llena o vacía según favorito
+                          ),
+                          color: isFavorite ? Colors.yellow : Colors.white, // Cambiar el color del icono según favorito
                           iconSize: 50, // Tamaño del icono
                         ),
                       ],
                     ),
+                    // Imagen del Pokémon con esquinas redondeadas
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8), // Esquinas redondeadas para la imagen
                       child: CachedNetworkImage(
@@ -69,37 +67,38 @@ class CartaPokemon extends StatelessWidget {
                         placeholder: (context, url) => const Center(
                           child: CircularProgressIndicator(), // Indicador de carga mientras se descarga la imagen
                         ),
-                        height: imageHeight, // Ajusta la altura de la imagen al 65% de la Card
+                        height: imageHeight, // Altura de la imagen basada en el tamaño de la tarjeta
                         fit: BoxFit.cover, // Ajusta la imagen para cubrir todo el espacio disponible
                       ),
                     ),
+                    // Nombre del Pokémon
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Text(
                         pokemon.name, // Nombre del Pokémon
                         style: const TextStyle(
-                          fontSize: 22, // Tamaño del texto
+                          fontSize: 22, // Tamaño de la fuente
                           fontWeight: FontWeight.bold, // Texto en negrita
                           color: Colors.white, // Color del texto
                         ),
-                        textAlign: TextAlign.center,
+                        textAlign: TextAlign.center, // Centrar el texto
                       ),
                     ),
+                    // Tipos de Pokémon mostrados como Chips
                     Wrap(
-                      spacing: 8.0,
-                      runSpacing: 4.0,
-                      alignment: WrapAlignment.center,
+                      spacing: 8.0, // Espaciado horizontal entre los chips
+                      runSpacing: 4.0, // Espaciado vertical entre los chips
+                      alignment: WrapAlignment.center, // Centrar los chips
                       children: pokemon.types.map((type) {
-                        final typeEnum = Type.values.firstWhere((e) =>
-                            e.name.toLowerCase() ==
-                            type.toLowerCase()); // Encuentra el tipo correspondiente en el enumerado
+                        final pokemonType = Type.values.firstWhere(
+                          (typeEnum) => typeEnum.name.toLowerCase() == type.toLowerCase(),
+                        ); // Encuentra el tipo correspondiente en el enumerado
                         return Chip(
                           label: Text(
                             type, // Nombre del tipo de Pokémon
                             style: const TextStyle(color: Colors.white),
                           ),
-                          backgroundColor:
-                              typeEnum.color, // Color del Chip según el tipo de Pokémon
+                          backgroundColor: pokemonType.color, // Color del Chip basado en el tipo de Pokémon
                         );
                       }).toList(),
                     ),

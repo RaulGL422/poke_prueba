@@ -5,46 +5,47 @@ import 'package:poke_prueba/controllers/scrollcontroller.dart';
 import 'package:poke_prueba/events.dart';
 import 'package:poke_prueba/states.dart';
 import 'package:poke_prueba/theme/theme.dart';
-import 'package:poke_prueba/widgets/cartapokemon.dart';
+import 'package:poke_prueba/widgets/pokemon_card.dart';
 import 'package:poke_prueba/models/pokemon.dart';
 
-class PanelCartas extends StatelessWidget {
-  const PanelCartas({
+class PokemonCardPanel extends StatelessWidget {
+  const PokemonCardPanel({
     super.key,
     required this.pokemonList,
-    required this.state
+    required this.state,
   });
 
-  final List<Pokemon> pokemonList;
-  final PokemonState state;
+  final List<Pokemon> pokemonList; // Lista de Pokémon a mostrar
+  final PokemonState state; // Estado actual del Bloc
 
   @override
   Widget build(BuildContext context) {
+    // Controlador de scroll personalizado para detectar cuándo se llega al final de la lista
     final scrollController = PokemonScrollController(
       onEndReached: () {
         if (state is! PokemonLoadingMore) {
-          context.read<PokemonBloc>().add(LoadMorePokemons()); // Carga más Pokémon al llegar al final de la lista
+          context.read<PokemonBloc>().add(LoadMorePokemons()); // Cargar más Pokémon cuando se llegue al final de la lista
         }
       },
     );
 
-    final sizeScreen = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.of(context).size;
 
-    int columns;
+    int numberOfColumns;
     double widthFactor;
     double spacing;
 
-    // Configuración de columnas, ancho y espaciado según el tamaño de la pantalla
-    if (sizeScreen.width >= 1200) { // Ordenador
-      columns = 3;
+    // Configura el número de columnas, el ancho y el espaciado de la grilla según el tamaño de la pantalla
+    if (screenSize.width >= 1200) { // Pantallas grandes (ordenadores)
+      numberOfColumns = 3;
       widthFactor = AppFactorWidth.widthFactorComputer;
       spacing = 16;
-    } else if (sizeScreen.width >= 728) { // Tablet
-      columns = 2;
+    } else if (screenSize.width >= 728) { // Pantallas medianas (tablets)
+      numberOfColumns = 2;
       widthFactor = AppFactorWidth.widthFactorTablet;
       spacing = 16;
-    } else { // Móviles
-      columns = 1;
+    } else { // Pantallas pequeñas (móviles)
+      numberOfColumns = 1;
       widthFactor = AppFactorWidth.widthFactorMobile;
       spacing = 12;
     }
@@ -55,7 +56,7 @@ class PanelCartas extends StatelessWidget {
         child: GridView.builder(
           controller: scrollController,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns, // Número de columnas en la grilla
+            crossAxisCount: numberOfColumns, // Número de columnas en la grilla
             crossAxisSpacing: spacing, // Espaciado horizontal entre columnas
             mainAxisSpacing: spacing, // Espaciado vertical entre filas
           ),
@@ -63,14 +64,14 @@ class PanelCartas extends StatelessWidget {
           itemBuilder: (context, index) {
             final pokemon = pokemonList[index];
 
-            // Aplicación de animación de opacidad y escala a las cartas
+            // Retorna la carta del Pokémon con animaciones de opacidad y escala
             return AnimatedOpacity(
               opacity: 1.0,
               duration: Duration(milliseconds: 300), // Duración de la animación de desvanecimiento
               child: AnimatedScale(
                 scale: 1.0,
                 duration: Duration(milliseconds: 300), // Duración de la animación de escala
-                child: CartaPokemon(pokemon: pokemon),
+                child: PokemonCard(pokemon: pokemon),
               ),
             );
           },

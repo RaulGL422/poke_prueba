@@ -10,33 +10,31 @@ import 'package:poke_prueba/theme/theme.dart';
 class PokemonDetailsPage extends StatelessWidget {
   final Pokemon pokemon;
 
-  PokemonDetailsPage({required this.pokemon});
+  const PokemonDetailsPage({required this.pokemon});
 
   @override
   Widget build(BuildContext context) {
-    final sizeScreen = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.of(context).size;
 
-    // Ajusta el widthFactor según el tamaño de la pantalla
-    double widthFactor;
-    if (sizeScreen.width >= 1200) { // Ordenador
-      widthFactor = AppFactorWidth.widthFactorComputer;
-    } else if (sizeScreen.width >= 800) { // Tablet
-      widthFactor = AppFactorWidth.widthFactorTablet;
-    } else { // Móviles
-      widthFactor = AppFactorWidth.widthFactorMobile;
-    }
+    // Determina el factor de ancho basado en el tamaño de la pantalla
+    final double widthFactor = screenSize.width >= 1200
+        ? AppFactorWidth.widthFactorComputer
+        : screenSize.width >= 800
+            ? AppFactorWidth.widthFactorTablet
+            : AppFactorWidth.widthFactorMobile;
 
-    final Color background = Type.values.firstWhere(
+    // Obtiene el color de fondo basado en el primer tipo del Pokémon
+    final Color backgroundColor = Type.values.firstWhere(
       (type) => type.name.toLowerCase() == pokemon.types.first.toLowerCase(),
     ).color;
 
     return Container(
-      color: background,
+      color: backgroundColor,
       child: FractionallySizedBox(
         widthFactor: widthFactor,
         child: Scaffold(
           backgroundColor: Theme.of(context).primaryColor,
-          body: SingleChildScrollView(  // Se asegura de que la pantalla pueda desplazarse
+          body: SingleChildScrollView(
             child: Column(
               children: [
                 Padding(
@@ -44,14 +42,15 @@ class PokemonDetailsPage extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Botón de retroceso
                       IconButton(
-                        icon: Icon(Icons.arrow_back),
+                        icon: const Icon(Icons.arrow_back),
                         onPressed: () => context.read<PokemonBloc>().add(ClearSelection()),
                       ),
+                      // Botón de favorito
                       BlocBuilder<PokemonBloc, PokemonState>(
                         builder: (context, state) {
                           final isFavorite = context.read<PokemonBloc>().favoritePokemons.contains(pokemon);
-                              
                           return IconButton(
                             icon: Icon(
                               isFavorite ? Icons.star : Icons.star_border,
@@ -64,7 +63,7 @@ class PokemonDetailsPage extends StatelessWidget {
                           );
                         },
                       ),
-                    ]
+                    ],
                   ),
                 ),
                 FractionallySizedBox(
@@ -72,6 +71,7 @@ class PokemonDetailsPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Imagen del Pokémon
                       Center(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
@@ -83,6 +83,7 @@ class PokemonDetailsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
+                      // Nombre del Pokémon
                       Text(
                         pokemon.name,
                         style: const TextStyle(
@@ -92,6 +93,7 @@ class PokemonDetailsPage extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
+                      // Tipos del Pokémon
                       Text(
                         "Tipos",
                         style: TextStyle(
@@ -118,6 +120,7 @@ class PokemonDetailsPage extends StatelessWidget {
                         }).toList(),
                       ),
                       const SizedBox(height: 40),
+                      // Habilidades del Pokémon
                       Text(
                         "Habilidades",
                         style: TextStyle(
@@ -128,12 +131,12 @@ class PokemonDetailsPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Wrap(
-                        spacing: 8.0, // Espaciado horizontal entre las habilidades
-                        runSpacing: 4.0, // Espaciado vertical si las habilidades se desbordan en varias líneas
-                        children: pokemon.habilities.map((hability) {
+                        spacing: 8.0,
+                        runSpacing: 4.0,
+                        children: pokemon.habilities.map((ability) {
                           return Chip(
                             label: Text(
-                              hability,
+                              ability,
                               style: const TextStyle(fontSize: 18),
                             ),
                             backgroundColor: Colors.grey[200], // Color de fondo del chip
@@ -141,6 +144,7 @@ class PokemonDetailsPage extends StatelessWidget {
                         }).toList(),
                       ),
                       const SizedBox(height: 40),
+                      // Número en Pokédex
                       Text(
                         "Número en Pokédex",
                         style: TextStyle(
